@@ -1,16 +1,11 @@
-// 🐨 make sure to add the comment and import jsx from @emotion/core
-// up here so you can use the css prop
+/** @jsx jsx */
+import {jsx} from '@emotion/core'
 
-// 🐨 let's get a solid reset of global styles so everything looks a bit better
-// In this project we're using bootstrap-reboot which you can import from
 import 'bootstrap/dist/css/bootstrap-reboot.css'
-// 🦉 Note: you can definitely use regular styles to style React apps
-// and using any modern toolchain will allow you to simply import the CSS file
-// but CSS-in-JS is generally easier to maintain.
 import '@reach/dialog/styles.css'
 import * as React from 'react'
 import {createRoot} from 'react-dom/client'
-import {Button, Input, FormGroup} from './components/lib'
+import {Button, Input, FormGroup, Spinner} from './components/lib'
 import {Modal, ModalContents, ModalOpenButton} from './components/modal'
 import {Logo} from './components/logo'
 
@@ -47,7 +42,10 @@ function LoginForm({onSubmit, submitButton}) {
         <label htmlFor="password">Password</label>
         <Input id="password" type="password" />
       </FormGroup>
-      <div>{React.cloneElement(submitButton, {type: 'submit'})}</div>
+      <div>
+        {React.cloneElement(submitButton, {type: 'submit'})}
+        <Spinner css={{marginLeft: 5}} />
+      </div>
     </form>
   )
 }
@@ -74,18 +72,10 @@ function App() {
     >
       <Logo width="80" height="80" />
       <h1>Bookshelf</h1>
-      {/*
-        🐨 the two buttons are too close, let's space them out
-          🎨 apply this to the div right below
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-            gridGap: '0.75rem',
-      */}
-      {/* 🐨 And make sure to use the new Button component for all these buttons */}
       <div
         css={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr)',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
           gridGap: '0.75rem',
         }}
       >
