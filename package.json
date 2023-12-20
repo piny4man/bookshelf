@@ -81,7 +81,7 @@
     "format": "prettier --write \"**/*.+(js|json|css|md|mdx|html)\"",
     "setup": "node setup",
     "validate-exercises": "node ./scripts/validate-exercises",
-    "validate": "npm run validate-exercises && npm-run-all --parallel lint test:coverage && node ./scripts/build"
+    "validate": "npm run validate-exercises && npm-run-all --parallel lint test:coverage && node ./scripts/build""validate": "npm run validate-exercises && npm-run-all --parallel lint test:coverage && node ./scripts/build"
   },
   "babel": {
     "presets": [
