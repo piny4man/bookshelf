@@ -1,24 +1,25 @@
 import * as auth from 'auth-provider'
-
 const apiURL = process.env.REACT_APP_API_URL
 
-async function client(endpoint, { token, data, headers: customHeaders, ...customConfig } = {}) {
+function client(
+  endpoint,
+  {token, headers: customHeaders, ...customConfig} = {},
+) {
   const config = {
-    method: data ? 'POST' : 'GET',
+    method: 'GET',
     headers: {
       Authorization: token ? `Bearer ${token}` : undefined,
-      'Content-type': data ? 'application/json' : undefined,
-      ...customHeaders
+      ...customHeaders,
     },
-    body: data ? JSON.stringify(data) : undefined,
     ...customConfig,
   }
 
   return window.fetch(`${apiURL}/${endpoint}`, config).then(async response => {
     if (response.status === 401) {
-      auth.logout()
+      await auth.logout()
+      // refresh the page for them
       window.location.assign(window.location)
-      return Promise.reject({ message: 'Session expired, please re-authenticate' })
+      return Promise.reject({message: 'Please re-authenticate.'})
     }
     const data = await response.json()
     if (response.ok) {
@@ -29,4 +30,4 @@ async function client(endpoint, { token, data, headers: customHeaders, ...custom
   })
 }
 
-export { client }
+export {client}

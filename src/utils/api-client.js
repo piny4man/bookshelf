@@ -1,6 +1,9 @@
-// export * from './api-client.final'
+// no final
 
 export * from './api-client.exercise'
 
-// 💯 handle failed requests
-// export * from './api-client.extra-1'
+// 💯 automatically logout on 401
+// export * from './api-client.extra-3'
+
+// 💯 Support posting data
+// export * from './api-client.extra-4'

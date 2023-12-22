@@ -583,15 +583,6 @@
       "contributions": [
         "doc"
       ]
-    },
-    {
-      "login": "kmccoan",
-      "name": "kmccoan",
-      "avatar_url": "https://avatars.githubusercontent.com/u/4242047?v=4",
-      "profile": "https://github.com/kmccoan",
-      "contributions": [
-        "doc"
-      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -600,6 +591,5 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "commitConvention": "angular",
-  "commitType": "docs"
+  "commitConvention": "angular"
 }
