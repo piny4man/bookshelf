@@ -2,7 +2,7 @@ import * as auth from 'auth-provider'
 
 const apiURL = process.env.REACT_APP_API_URL
 
-function client(endpoint, { token, data, headers: customHeaders, ...customConfig } = {}) {
+async function client(endpoint, { token, data, headers: customHeaders, ...customConfig } = {}) {
   const config = {
     method: data ? 'POST' : 'GET',
     headers: {
