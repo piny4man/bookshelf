@@ -2,39 +2,53 @@
 import { jsx } from '@emotion/core'
 import * as React from 'react'
 import * as auth from 'auth-provider'
-import { AuthenticatedApp } from './authenticated-app'
-import { UnauthenticatedApp } from './unauthenticated-app'
-import { client } from './utils/api-client'
-import { useAsync } from './utils/hooks'
+import { BrowserRouter as Router } from 'react-router-dom'
 import { FullPageSpinner } from './components/lib'
 import * as colors from './styles/colors'
+import { client } from './utils/api-client'
+import { useAsync } from './utils/hooks'
+import { AuthenticatedApp } from './authenticated-app'
+import { UnauthenticatedApp } from './unauthenticated-app'
 
-const getUser = async () => {
+async function getUser() {
   let user = null
+
   const token = await auth.getToken()
   if (token) {
-    const response = await client('me', { token })
-    user = response.user
+    const data = await client('me', { token })
+    user = data.user
   }
 
   return user
 }
 
 function App() {
-  const { data: user, setData, run, error, isLoading, isIdle, isError } = useAsync()
-
-  const login = form => auth.login(form).then(u => setData(u))
-  const register = form => auth.register(form).then(u => setData(u))
-  const logout = () => {
-    auth.logout()
-    setData(null)
-  }
+  const {
+    data: user,
+    error,
+    isLoading,
+    isIdle,
+    isError,
+    isSuccess,
+    run,
+    setData,
+  } = useAsync()
 
   React.useEffect(() => {
     run(getUser())
   }, [run])
 
-  if (isLoading || isIdle) return <FullPageSpinner />
+  const login = form => auth.login(form).then(user => setData(user))
+  const register = form => auth.register(form).then(user => setData(user))
+  const logout = () => {
+    auth.logout()
+    setData(null)
+  }
+
+  if (isLoading || isIdle) {
+    return <FullPageSpinner />
+  }
+
   if (isError) {
     return (
       <div
@@ -52,13 +66,17 @@ function App() {
       </div>
     )
   }
-  if (Boolean(user)) return <AuthenticatedApp user={user} logout={logout} />
-  return <UnauthenticatedApp login={login} register={register} />
+
+  if (isSuccess) {
+    const props = { user, login, register, logout }
+    return user ? (
+      <Router>
+        <AuthenticatedApp {...props} />
+      </Router>
+    ) : (
+      <UnauthenticatedApp {...props} />
+    )
+  }
 }
 
 export { App }
-
-/*
-eslint
-  no-unused-vars: "off",
-*/
