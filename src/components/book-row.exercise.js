@@ -1,24 +1,22 @@
 /** @jsx jsx */
-import {jsx} from '@emotion/core'
+import { jsx } from '@emotion/core'
 
-import {Link} from 'react-router-dom'
-// 🐨 get useQuery from react-query
-// 🐨 you'll also need the client from 'utils/api-client'
+import { Link } from 'react-router-dom'
+import { useQuery } from 'react-query'
+import { client } from 'utils/api-client'
 import * as mq from 'styles/media-queries'
 import * as colors from 'styles/colors'
-import {StatusButtons} from './status-buttons'
-import {Rating} from './rating'
+import { StatusButtons } from './status-buttons'
+import { Rating } from './rating'
 
-function BookRow({user, book}) {
-  const {title, author, coverImageUrl} = book
-
-  // 🐨 call useQuery here to get the list item
-  // queryKey should be 'list-items'
-  // queryFn should be a call to the list-items endpoint
-
-  // 🐨 assign listItem to the list item that has the same bookId as the book.id
-  const listItem = null
-
+function BookRow({ user, book }) {
+  const { title, author, coverImageUrl } = book
+  const { data: listItems } = useQuery({
+    queryKey: 'list-items',
+    queryFn: () =>
+      client(`list-items`, { token: user.token }).then(data => data.listItems),
+  })
+  const listItem = listItems?.find(li => li.bookId === book.id) ?? null
   const id = `book-row-book-${book.id}`
 
   return (
@@ -61,12 +59,12 @@ function BookRow({user, book}) {
           <img
             src={coverImageUrl}
             alt={`${title} book cover`}
-            css={{maxHeight: '100%', width: '100%'}}
+            css={{ maxHeight: '100%', width: '100%' }}
           />
         </div>
-        <div css={{flex: 1}}>
-          <div css={{display: 'flex', justifyContent: 'space-between'}}>
-            <div css={{flex: 1}}>
+        <div css={{ flex: 1 }}>
+          <div css={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div css={{ flex: 1 }}>
               <h2
                 id={id}
                 css={{
@@ -81,7 +79,7 @@ function BookRow({user, book}) {
                 <Rating user={user} listItem={listItem} />
               ) : null}
             </div>
-            <div css={{marginLeft: 10}}>
+            <div css={{ marginLeft: 10 }}>
               <div
                 css={{
                   marginTop: '0.4em',
@@ -94,7 +92,7 @@ function BookRow({user, book}) {
               <small>{book.publisher}</small>
             </div>
           </div>
-          <small css={{whiteSpace: 'break-spaces', display: 'block'}}>
+          <small css={{ whiteSpace: 'break-spaces', display: 'block' }}>
             {book.synopsis.substring(0, 500)}...
           </small>
         </div>
@@ -117,4 +115,4 @@ function BookRow({user, book}) {
   )
 }
 
-export {BookRow}
+export { BookRow }
