@@ -9,26 +9,23 @@ import {
   FaBook,
   FaTimesCircle,
 } from 'react-icons/fa'
+
 import Tooltip from '@reach/tooltip'
 import {
   useListItem,
   useUpdateListItem,
+  useCreateListItem,
   useRemoveListItem,
-  useCreateListItem
 } from 'utils/list-items'
-import { useAsync } from 'utils/hooks'
 import * as colors from 'styles/colors'
+import { useAsync } from 'utils/hooks'
 import { CircleButton, Spinner } from './lib'
 
 function TooltipButton({ label, highlight, onClick, icon, ...rest }) {
-  const { isLoading, isError, error, run, reset } = useAsync()
+  const { isLoading, isError, error, run } = useAsync()
 
   function handleClick() {
-    if (isError) {
-      reset()
-    } else {
-      run(onClick())
-    }
+    run(onClick())
   }
 
   return (
@@ -55,12 +52,11 @@ function TooltipButton({ label, highlight, onClick, icon, ...rest }) {
   )
 }
 
-function StatusButtons({ user, book }) {
-  const listItem = useListItem(user, book.id)
-
-  const [update] = useUpdateListItem(user, { throwOnError: true })
-  const [remove] = useRemoveListItem(user, { throwOnError: true })
-  const [create] = useCreateListItem(user, { throwOnError: true })
+function StatusButtons({ book }) {
+  const listItem = useListItem(book.id)
+  const [update] = useUpdateListItem({ throwOnError: true })
+  const [remove] = useRemoveListItem({ throwOnError: true })
+  const [create] = useCreateListItem({ throwOnError: true })
 
   return (
     <React.Fragment>

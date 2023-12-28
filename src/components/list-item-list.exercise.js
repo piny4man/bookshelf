@@ -6,15 +6,15 @@ import { BookListUL } from './lib'
 import { BookRow } from './book-row'
 
 function ListItemList({
-  user,
   filterListItems,
   noListItems,
   noFilteredListItems,
 }) {
-  const listItems = useListItems(user)
-  const filteredListItems = listItems?.filter(filterListItems)
+  const listItems = useListItems()
 
-  if (!listItems?.length) {
+  const filteredListItems = listItems.filter(filterListItems)
+
+  if (!listItems.length) {
     return <div css={{ marginTop: '1em', fontSize: '1.2em' }}>{noListItems}</div>
   }
   if (!filteredListItems.length) {
@@ -29,7 +29,9 @@ function ListItemList({
     <BookListUL>
       {filteredListItems.map(listItem => (
         <li key={listItem.id}>
-          <BookRow user={user} book={listItem.book} />
+          <BookRow
+            book={listItem.book}
+          />
         </li>
       ))}
     </BookListUL>

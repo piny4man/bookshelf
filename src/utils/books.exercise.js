@@ -1,5 +1,6 @@
+import React from 'react'
 import { useQuery, queryCache } from 'react-query'
-import { client } from 'utils/api-client'
+import { useClient } from 'context/auth-context'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
 
 const loadingBook = {
@@ -16,43 +17,53 @@ const loadingBooks = Array.from({ length: 10 }, (v, index) => ({
   ...loadingBook,
 }))
 
-const getBookSearchConfig = (query, user) => ({
+const getBookSearchConfig = (query, client) => ({
   queryKey: ['bookSearch', { query }],
-  queryFn: () => client(`books?query=${encodeURIComponent(query)}`, {
-    token: user.token,
-  }).then(data => data.books),
+  queryFn: () =>
+    client(`books?query=${encodeURIComponent(query)}`).then(data => data.books),
   config: {
     onSuccess(books) {
       for (const book of books) {
         setQueryDataForBook(book)
       }
-    }
-  }
+    },
+  },
 })
 
-const useBook = (bookId, user) => {
-  const { data } = useQuery({
-    queryKey: ['book', { bookId }],
-    queryFn: () => client(`books/${bookId}`, { token: user.token }).then(data => data.book)
-  })
-
-  return data ?? loadingBook
-}
-
-const useBookSearch = (query, user) => {
-  const result = useQuery(
-    getBookSearchConfig(query, user)
-  )
+function useBookSearch(query) {
+  const client = useClient()
+  const result = useQuery(getBookSearchConfig(query, client))
   return { ...result, books: result.data ?? loadingBooks }
 }
 
-const refetchBookSearchQuery = async (user) => {
-  queryCache.removeQueries('bookSearch')
-  await queryCache.prefetchQuery(getBookSearchConfig('', user))
+function useBook(bookId) {
+  const client = useClient()
+  const { data } = useQuery({
+    queryKey: ['book', { bookId }],
+    queryFn: () =>
+      client(`books/${bookId}`).then(data => data.book),
+  })
+  return data ?? loadingBook
 }
 
-const setQueryDataForBook = (book) => {
-  queryCache.setQueryData(['book', { bookId: book.id }], book)
+function useRefetchBookSearchQuery() {
+  const client = useClient()
+  return React.useCallback(
+    async () => {
+      queryCache.removeQueries('bookSearch')
+      await queryCache.prefetchQuery(getBookSearchConfig('', client))
+    },
+    [client]
+  )
 }
 
-export { useBook, useBookSearch, refetchBookSearchQuery, setQueryDataForBook }
+const bookQueryConfig = {
+  staleTime: 1000 * 60 * 60,
+  cacheTime: 1000 * 60 * 60,
+}
+
+function setQueryDataForBook(book) {
+  queryCache.setQueryData(['book', { bookId: book.id }], book, bookQueryConfig)
+}
+
+export { useBook, useBookSearch, useRefetchBookSearchQuery, setQueryDataForBook }
