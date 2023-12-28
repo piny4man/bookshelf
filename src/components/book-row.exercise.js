@@ -1,12 +1,16 @@
 /** @jsx jsx */
 import { jsx } from '@emotion/core'
+
 import { Link } from 'react-router-dom'
+import { useListItem } from 'utils/list-items'
 import * as mq from 'styles/media-queries'
 import * as colors from 'styles/colors'
+import { StatusButtons } from './status-buttons'
+import { Rating } from './rating'
 
-function BookRow({ book }) {
+function BookRow({ user, book }) {
   const { title, author, coverImageUrl } = book
-
+  const listItem = useListItem(user, book.id)
   const id = `book-row-book-${book.id}`
 
   return (
@@ -19,8 +23,8 @@ function BookRow({ book }) {
       }}
     >
       <Link
-        to={`/book/${book.id}`}
         aria-labelledby={id}
+        to={`/book/${book.id}`}
         css={{
           minHeight: 270,
           flexGrow: 2,
@@ -65,6 +69,9 @@ function BookRow({ book }) {
               >
                 {title}
               </h2>
+              {listItem?.finishDate ? (
+                <Rating user={user} listItem={listItem} />
+              ) : null}
             </div>
             <div css={{ marginLeft: 10 }}>
               <div
@@ -84,6 +91,20 @@ function BookRow({ book }) {
           </small>
         </div>
       </Link>
+      <div
+        css={{
+          marginLeft: '20px',
+          position: 'absolute',
+          right: -20,
+          color: colors.gray80,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-around',
+          height: '100%',
+        }}
+      >
+        <StatusButtons user={user} book={book} />
+      </div>
     </div>
   )
 }
