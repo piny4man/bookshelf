@@ -1,29 +1,24 @@
 /** @jsx jsx */
-import {jsx} from '@emotion/core'
+import { jsx } from '@emotion/core'
 
 import * as React from 'react'
-import VisuallyHidden from '@reach/visually-hidden'
 import {
   Input,
-  CircleButton,
   Button,
   Spinner,
   FormGroup,
   ErrorMessage,
-  // 💣 when you're all done, you won't need this Dialog anymore
-  // you can remove this now or later when you've finished
-  Dialog,
 } from './components/lib'
-// 🐨 import all the Modal compound components you created in ./components/modal
-import {Logo} from './components/logo'
-import {useAuth} from './context/auth-context'
-import {useAsync} from './utils/hooks'
+import { Modal, ModalContents, ModalOpenButton } from './components/modal'
+import { Logo } from './components/logo'
+import { useAuth } from './context/auth-context'
+import { useAsync } from './utils/hooks'
 
-function LoginForm({onSubmit, submitButton}) {
-  const {isLoading, isError, error, run} = useAsync()
+function LoginForm({ onSubmit, submitButton }) {
+  const { isLoading, isError, error, run } = useAsync()
   function handleSubmit(event) {
     event.preventDefault()
-    const {username, password} = event.target.elements
+    const { username, password } = event.target.elements
 
     run(
       onSubmit({
@@ -58,11 +53,11 @@ function LoginForm({onSubmit, submitButton}) {
       <div>
         {React.cloneElement(
           submitButton,
-          {type: 'submit'},
+          { type: 'submit' },
           ...(Array.isArray(submitButton.props.children)
             ? submitButton.props.children
             : [submitButton.props.children]),
-          isLoading ? <Spinner css={{marginLeft: 5}} /> : null,
+          isLoading ? <Spinner css={{ marginLeft: 5 }} /> : null,
         )}
       </div>
       {isError ? <ErrorMessage error={error} /> : null}
@@ -70,40 +65,8 @@ function LoginForm({onSubmit, submitButton}) {
   )
 }
 
-// 💣 when you're all done, you'll be able to completely delete this
-function LoginFormModal({
-  onSubmit,
-  modalTitleText,
-  modalLabelText,
-  submitButton,
-  openButton,
-}) {
-  const [isOpen, setIsOpen] = React.useState(false)
-
-  return (
-    <React.Fragment>
-      {React.cloneElement(openButton, {onClick: () => setIsOpen(true)})}
-      <Dialog
-        aria-label={modalLabelText}
-        isOpen={isOpen}
-        onDismiss={() => setIsOpen(false)}
-      >
-        <div css={{display: 'flex', justifyContent: 'flex-end'}}>
-          {/* 💰 here's what you should put in your <ModalDismissButton> */}
-          <CircleButton onClick={() => setIsOpen(false)}>
-            <VisuallyHidden>Close</VisuallyHidden>
-            <span aria-hidden>×</span>
-          </CircleButton>
-        </div>
-        <h3 css={{textAlign: 'center', fontSize: '2em'}}>{modalTitleText}</h3>
-        <LoginForm onSubmit={onSubmit} submitButton={submitButton} />
-      </Dialog>
-    </React.Fragment>
-  )
-}
-
 function UnauthenticatedApp() {
-  const {login, register} = useAuth()
+  const { login, register } = useAuth()
   return (
     <div
       css={{
@@ -124,29 +87,31 @@ function UnauthenticatedApp() {
           gridGap: '0.75rem',
         }}
       >
-        {/* 🐨 replace both of these with the Modal compound components */}
-        {/*
-          🦉 when you're done, it'll look a lot more complicated than
-             it did when you started, but the extra credits will help clean
-             things up a bit.
-        */}
-        <LoginFormModal
-          onSubmit={login}
-          modalTitleText="Login"
-          modalLabelText="Login form"
-          submitButton={<Button variant="primary">Login</Button>}
-          openButton={<Button variant="primary">Login</Button>}
-        />
-        <LoginFormModal
-          onSubmit={register}
-          modalTitleText="Register"
-          modalLabelText="Registration form"
-          submitButton={<Button variant="secondary">Register</Button>}
-          openButton={<Button variant="secondary">Register</Button>}
-        />
+        <Modal>
+          <ModalOpenButton>
+            <Button variant="primary">Login</Button>
+          </ModalOpenButton>
+          <ModalContents title="Login" aria-label="Login form">
+            <LoginForm
+              onSubmit={login}
+              submitButton={<Button variant="primary">Login</Button>}
+            />
+          </ModalContents>
+        </Modal>
+        <Modal>
+          <ModalOpenButton>
+            <Button variant="secondary">Register</Button>
+          </ModalOpenButton>
+          <ModalContents title="Register" aria-label="Registration form">
+            <LoginForm
+              onSubmit={register}
+              submitButton={<Button variant="secondary">Register</Button>}
+            />
+          </ModalContents>
+        </Modal>
       </div>
     </div>
   )
 }
 
-export {UnauthenticatedApp}
+export { UnauthenticatedApp }
