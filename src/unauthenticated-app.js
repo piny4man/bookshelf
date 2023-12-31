@@ -2,5 +2,5 @@
 
 export * from './unauthenticated-app.exercise'
 
-// 💯 create a `useAuth` hook
-// export * from './unauthenticated-app.extra-1'
+// 💯 Create ModalContentsBase
+// export * from './unauthenticated-app.extra-2'
