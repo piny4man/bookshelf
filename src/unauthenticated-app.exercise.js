@@ -1,24 +1,18 @@
 /** @jsx jsx */
-import { jsx } from '@emotion/core'
+import {jsx} from '@emotion/core'
 
 import * as React from 'react'
-import {
-  Input,
-  Button,
-  Spinner,
-  FormGroup,
-  ErrorMessage,
-} from './components/lib'
-import { Modal, ModalContents, ModalOpenButton } from './components/modal'
-import { Logo } from './components/logo'
-import { useAuth } from './context/auth-context'
-import { useAsync } from './utils/hooks'
+import {Input, Button, Spinner, FormGroup, ErrorMessage} from './components/lib'
+import {Modal, ModalContents, ModalOpenButton} from './components/modal'
+import {Logo} from './components/logo'
+import {useAuth} from './context/auth-context'
+import {useAsync} from './utils/hooks'
 
-function LoginForm({ onSubmit, submitButton }) {
-  const { isLoading, isError, error, run } = useAsync()
+function LoginForm({onSubmit, submitButton}) {
+  const {isLoading, isError, error, run} = useAsync()
   function handleSubmit(event) {
     event.preventDefault()
-    const { username, password } = event.target.elements
+    const {username, password} = event.target.elements
 
     run(
       onSubmit({
@@ -53,11 +47,11 @@ function LoginForm({ onSubmit, submitButton }) {
       <div>
         {React.cloneElement(
           submitButton,
-          { type: 'submit' },
+          {type: 'submit'},
           ...(Array.isArray(submitButton.props.children)
             ? submitButton.props.children
             : [submitButton.props.children]),
-          isLoading ? <Spinner css={{ marginLeft: 5 }} /> : null,
+          isLoading ? <Spinner css={{marginLeft: 5}} /> : null,
         )}
       </div>
       {isError ? <ErrorMessage error={error} /> : null}
@@ -66,7 +60,7 @@ function LoginForm({ onSubmit, submitButton }) {
 }
 
 function UnauthenticatedApp() {
-  const { login, register } = useAuth()
+  const {login, register} = useAuth()
   return (
     <div
       css={{
@@ -91,7 +85,7 @@ function UnauthenticatedApp() {
           <ModalOpenButton>
             <Button variant="primary">Login</Button>
           </ModalOpenButton>
-          <ModalContents title="Login" aria-label="Login form">
+          <ModalContents aria-label="Login form" title="Login">
             <LoginForm
               onSubmit={login}
               submitButton={<Button variant="primary">Login</Button>}
@@ -102,7 +96,7 @@ function UnauthenticatedApp() {
           <ModalOpenButton>
             <Button variant="secondary">Register</Button>
           </ModalOpenButton>
-          <ModalContents title="Register" aria-label="Registration form">
+          <ModalContents aria-label="Registration form" title="Register">
             <LoginForm
               onSubmit={register}
               submitButton={<Button variant="secondary">Register</Button>}
@@ -114,4 +108,5 @@ function UnauthenticatedApp() {
   )
 }
 
-export { UnauthenticatedApp }
+export default UnauthenticatedApp
+
