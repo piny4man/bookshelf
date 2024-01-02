@@ -1,18 +1,18 @@
 /** @jsx jsx */
-import {jsx} from '@emotion/core'
+import { jsx } from '@emotion/core'
 
 import * as React from 'react'
 import * as auth from 'auth-provider'
-import {client} from 'utils/api-client'
-import {useAsync} from 'utils/hooks'
-import {FullPageSpinner, FullPageErrorFallback} from 'components/lib'
+import { client } from 'utils/api-client'
+import { useAsync } from 'utils/hooks'
+import { FullPageSpinner, FullPageErrorFallback } from 'components/lib'
 
 async function getUser() {
   let user = null
 
   const token = await auth.getToken()
   if (token) {
-    const data = await client('me', {token})
+    const data = await client('me', { token })
     user = data.user
   }
 
@@ -40,12 +40,22 @@ function AuthProvider(props) {
     run(userPromise)
   }, [run])
 
-  const login = form => auth.login(form).then(user => setData(user))
-  const register = form => auth.register(form).then(user => setData(user))
-  const logout = () => {
+  const login = React.useCallback(
+    form => auth.login(form).then(user => setData(user)),
+    [setData]
+  )
+  const register = React.useCallback(
+    form => auth.register(form).then(user => setData(user)),
+    [setData]
+  )
+  const logout = React.useCallback(() => {
     auth.logout()
     setData(null)
-  }
+  }, [setData])
+
+  const value = React.useMemo(() => ({ user, login, register, logout }), [
+    user, login, register, logout
+  ])
 
   if (isLoading || isIdle) {
     return <FullPageSpinner />
@@ -56,7 +66,6 @@ function AuthProvider(props) {
   }
 
   if (isSuccess) {
-    const value = {user, login, register, logout}
     return <AuthContext.Provider value={value} {...props} />
   }
 
@@ -73,12 +82,12 @@ function useAuth() {
 
 function useClient() {
   const {
-    user: {token},
+    user: { token },
   } = useAuth()
   return React.useCallback(
-    (endpoint, config) => client(endpoint, {...config, token}),
+    (endpoint, config) => client(endpoint, { ...config, token }),
     [token],
   )
 }
 
-export {AuthProvider, useAuth, useClient}
+export { AuthProvider, useAuth, useClient }
