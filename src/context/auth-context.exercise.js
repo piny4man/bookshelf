@@ -1,23 +1,33 @@
 /** @jsx jsx */
-import {jsx} from '@emotion/core'
+import { jsx } from '@emotion/core'
 
 import * as React from 'react'
+import { queryCache } from 'react-query'
 import * as auth from 'auth-provider'
-import {client} from 'utils/api-client'
-import {useAsync} from 'utils/hooks'
-import {FullPageSpinner, FullPageErrorFallback} from 'components/lib'
+import { client } from 'utils/api-client'
+import { useAsync } from 'utils/hooks'
+import { setQueryDataForBook } from 'utils/books'
+import { FullPageSpinner, FullPageErrorFallback } from 'components/lib'
 
-async function getUser() {
+async function bootstrapAppData() {
   let user = null
 
   const token = await auth.getToken()
   if (token) {
-    const data = await client('me', {token})
+    const data = await client('bootstrap', { token })
+    queryCache.setQueryData('list-items', data.listItems, {
+      staleTime: 5000,
+    })
+    for (const listItem of data.listItems) {
+      setQueryDataForBook(listItem.book)
+    }
     user = data.user
   }
 
   return user
 }
+
+const appDataPromise = bootstrapAppData()
 
 const AuthContext = React.createContext()
 AuthContext.displayName = 'AuthContext'
@@ -36,15 +46,7 @@ function AuthProvider(props) {
   } = useAsync()
 
   React.useEffect(() => {
-    // we need to call getUser() sooner.
-    // 🐨 move the next line to just outside the AuthProvider
-    // 🦉 this means that as soon as this module is imported,
-    // it will start requesting the user's data so we don't
-    // have to wait until the app mounts before we kick off
-    // the request.
-    // We're moving from "Fetch on render" to "Render WHILE you fetch"!
-    const userPromise = getUser()
-    run(userPromise)
+    run(appDataPromise)
   }, [run])
 
   const login = React.useCallback(
@@ -60,7 +62,7 @@ function AuthProvider(props) {
     setData(null)
   }, [setData])
 
-  const value = React.useMemo(() => ({user, login, logout, register}), [
+  const value = React.useMemo(() => ({ user, login, logout, register }), [
     login,
     logout,
     register,
@@ -92,12 +94,12 @@ function useAuth() {
 
 function useClient() {
   const {
-    user: {token},
+    user: { token },
   } = useAuth()
   return React.useCallback(
-    (endpoint, config) => client(endpoint, {...config, token}),
+    (endpoint, config) => client(endpoint, { ...config, token }),
     [token],
   )
 }
 
-export {AuthProvider, useAuth, useClient}
+export { AuthProvider, useAuth, useClient }
