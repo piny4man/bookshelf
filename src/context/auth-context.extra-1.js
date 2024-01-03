@@ -1,29 +1,29 @@
 /** @jsx jsx */
-import { jsx } from '@emotion/core'
+import {jsx} from '@emotion/core'
 
 import * as React from 'react'
-import { queryCache } from 'react-query'
+import {queryCache} from 'react-query'
 import * as auth from 'auth-provider'
-import { client } from 'utils/api-client'
-import { useAsync } from 'utils/hooks'
-import { setQueryDataForBook } from 'utils/books'
-import { FullPageSpinner, FullPageErrorFallback } from 'components/lib'
+import {client} from 'utils/api-client'
+import {useAsync} from 'utils/hooks'
+import {setQueryDataForBook} from 'utils/books'
+import {FullPageSpinner, FullPageErrorFallback} from 'components/lib'
 
 async function bootstrapAppData() {
   let user = null
 
   const token = await auth.getToken()
   if (token) {
-    const data = await client('bootstrap', { token })
+    const data = await client('bootstrap', {token})
     queryCache.setQueryData('list-items', data.listItems, {
       staleTime: 5000,
     })
+    // Let's also set the books in the query cache as well
     for (const listItem of data.listItems) {
       setQueryDataForBook(listItem.book)
     }
     user = data.user
   }
-
   return user
 }
 
@@ -62,7 +62,7 @@ function AuthProvider(props) {
     setData(null)
   }, [setData])
 
-  const value = React.useMemo(() => ({ user, login, logout, register }), [
+  const value = React.useMemo(() => ({user, login, logout, register}), [
     login,
     logout,
     register,
@@ -94,12 +94,12 @@ function useAuth() {
 
 function useClient() {
   const {
-    user: { token },
+    user: {token},
   } = useAuth()
   return React.useCallback(
-    (endpoint, config) => client(endpoint, { ...config, token }),
+    (endpoint, config) => client(endpoint, {...config, token}),
     [token],
   )
 }
 
-export { AuthProvider, useAuth, useClient }
+export {AuthProvider, useAuth, useClient}

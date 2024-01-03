@@ -19,6 +19,8 @@ async function getUser() {
   return user
 }
 
+const userPromise = getUser()
+
 const AuthContext = React.createContext()
 AuthContext.displayName = 'AuthContext'
 
@@ -36,7 +38,6 @@ function AuthProvider(props) {
   } = useAsync()
 
   React.useEffect(() => {
-    const userPromise = getUser()
     run(userPromise)
   }, [run])
 

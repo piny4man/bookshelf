@@ -58,7 +58,7 @@ function useAsync(initialState) {
         },
         error => {
           setError(error)
-          return error
+          return Promise.reject(error)
         },
       )
     },
