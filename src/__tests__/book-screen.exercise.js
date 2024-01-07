@@ -1,49 +1,15 @@
-// 🐨 here are the things you're going to need for this test:
 import * as React from 'react'
-import { queryCache } from 'react-query'
-import { buildUser, buildBook } from 'test/generate'
-import * as auth from 'auth-provider'
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react'
-import { AppProviders } from 'context'
+import { render, screen, userEvent, waitForLoadingToFinish } from 'test/app-test-utils'
+import { buildBook } from 'test/generate'
+import * as booksDB from 'test/data/books'
+import { formatDate } from 'utils/misc'
 import { App } from 'app'
 
-afterEach(async () => {
-  queryCache.clear()
-  await auth.logout()
-})
-
 test('renders all the book information', async () => {
-  window.localStorage.setItem(auth.localStorageKey, 'FAKE_TOKEN')
-  const user = buildUser()
-  const book = buildBook()
+  const book = await booksDB.create(buildBook())
   const route = `/book/${book.id}`
-  window.history.pushState({}, 'Test book page', route)
 
-  const originalFetch = window.fetch
-  window.fetch = async (url, config) => {
-    if (url.endsWith('/bootstrap')) {
-      return Promise.resolve({
-        ok: true,
-        json: async () => ({
-          user: { ...user, token: 'FAKE_TOKEN' },
-          listItems: [],
-        }),
-      })
-    } else if (url.endsWith(`/books/${book.id}`)) {
-      return Promise.resolve({ ok: true, json: async () => ({ book }) })
-    } else if (url.endsWith(`/list-items`)) {
-      return Promise.resolve({ ok: true, json: async () => ({ listItems: [] }) })
-    }
-    return originalFetch(url, config)
-  }
-
-  render(<App />, { wrapper: AppProviders })
-
-  await waitForElementToBeRemoved(() => [
-    ...screen.queryAllByLabelText(/loading/i),
-    ...screen.queryAllByText(/loading/i)
-  ])
-
+  await render(<App />, { route })
 
   expect(screen.getByRole('heading', { name: book.title })).toBeInTheDocument()
   expect(screen.getByText(book.author)).toBeInTheDocument()
@@ -58,3 +24,28 @@ test('renders all the book information', async () => {
   expect(screen.queryByRole('radio', { name: /star/i })).not.toBeInTheDocument()
   expect(screen.queryByLabelText(/start date/i)).not.toBeInTheDocument()
 })
+
+test('create a ist item for the book', async () => {
+  const book = await booksDB.create(buildBook())
+  const route = `/book/${book.id}`
+
+  await render(<App />, { route })
+
+  const addToListButton = screen.getByRole('button', { name: /add to list/i })
+  await userEvent.click(addToListButton)
+  expect(addToListButton).toBeDisabled()
+
+  await waitForLoadingToFinish()
+
+  expect(screen.getByRole('button', { name: /remove from list/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /mark as read/i })).toBeInTheDocument()
+  expect(screen.getByRole('textbox', { name: /notes/i })).toBeInTheDocument()
+
+  const startDateElement = screen.getByLabelText(/start date/i)
+  expect(startDateElement).toHaveTextContent(formatDate(Date.now()))
+
+  expect(screen.queryByRole('radio', { name: /add to list/i })).not.toBeInTheDocument()
+  expect(screen.queryByRole('radio', { name: /mark as unread/i })).not.toBeInTheDocument()
+  expect(screen.queryByRole('radio', { name: /star/i })).not.toBeInTheDocument()
+})
+
