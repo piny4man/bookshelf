@@ -123,3 +123,6 @@ test('can edit a note', async () => {
   })
 })
 
+test.todo('shows an error message when the book fails to load')
+
+test.todo('note update failures are displayed')
