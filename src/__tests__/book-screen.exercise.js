@@ -1,9 +1,15 @@
 import * as React from 'react'
-import { render, screen, userEvent, waitForLoadingToFinish } from 'test/app-test-utils'
-import { buildBook } from 'test/generate'
+import { render, screen, userEvent, waitForLoadingToFinish, loginAsUser } from 'test/app-test-utils'
+import faker from 'faker'
+import { buildBook, buildListItem } from 'test/generate'
 import * as booksDB from 'test/data/books'
+import * as listItemsDB from 'test/data/list-items'
 import { formatDate } from 'utils/misc'
 import { App } from 'app'
+
+const fakeTimerUserEvent = userEvent.setup({
+  advanceTimers: () => jest.runOnlyPendingTimers(),
+})
 
 test('renders all the book information', async () => {
   const book = await booksDB.create(buildBook())
@@ -47,5 +53,72 @@ test('create a ist item for the book', async () => {
   expect(screen.queryByRole('radio', { name: /add to list/i })).not.toBeInTheDocument()
   expect(screen.queryByRole('radio', { name: /mark as unread/i })).not.toBeInTheDocument()
   expect(screen.queryByRole('radio', { name: /star/i })).not.toBeInTheDocument()
+})
+
+test('can remove a list item for the book', async () => {
+  const user = await loginAsUser()
+  const book = await booksDB.create(buildBook())
+  await listItemsDB.create(buildListItem({ owner: user, book }))
+  const route = `/book/${book.id}`
+
+  await render(<App />, { route, user })
+
+  const removeFromListButton = screen.getByRole('button', { name: /remove from list/i })
+  await userEvent.click(removeFromListButton)
+  expect(removeFromListButton).toBeDisabled()
+
+  await waitForLoadingToFinish()
+
+  expect(screen.getByRole('button', { name: /add to list/i })).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /remove from list/i })).not.toBeInTheDocument()
+})
+
+test('can mark a list item as read', async () => {
+  const user = await loginAsUser()
+  const book = await booksDB.create(buildBook())
+  const listItem = await listItemsDB.create(buildListItem({ owner: user, book, finishDate: null }))
+  const route = `/book/${book.id}`
+
+  await render(<App />, { route, user })
+
+  const markAsReadButton = screen.getByRole('button', { name: /mark as read/i })
+  await userEvent.click(markAsReadButton)
+  expect(markAsReadButton).toBeDisabled()
+
+  await waitForLoadingToFinish()
+
+  expect(screen.getByRole('button', { name: /mark as unread/i })).toBeInTheDocument()
+  expect(screen.getAllByRole('radio', { name: /star/i })).toHaveLength(5)
+
+  const startAndFinishDateNode = screen.getByLabelText(/start and finish date/i)
+  expect(startAndFinishDateNode).toHaveTextContent(
+    `${formatDate(listItem.startDate)} — ${formatDate(Date.now())}`
+  )
+
+  expect(screen.queryByRole('button', { name: /mark as read/i })).not.toBeInTheDocument()
+})
+
+test('can edit a note', async () => {
+  jest.useFakeTimers()
+  const user = await loginAsUser()
+  const book = await booksDB.create(buildBook())
+  const listItem = await listItemsDB.create(buildListItem({ owner: user, book }))
+  const route = `/book/${book.id}`
+
+  await render(<App />, { route, user })
+
+  const newNotes = faker.lorem.words()
+  const notesTextArea = screen.getByRole('textbox', { name: /notes/i })
+
+  await fakeTimerUserEvent.clear(notesTextArea)
+  await fakeTimerUserEvent.type(notesTextArea, newNotes)
+
+  await screen.findByLabelText(/loading/i)
+  await waitForLoadingToFinish()
+
+  expect(notesTextArea).toHaveTextContent(newNotes)
+  expect(await listItemsDB.read(listItem.id)).toMatchObject({
+    notes: newNotes,
+  })
 })
 
